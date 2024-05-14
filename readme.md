@@ -1,5 +1,9 @@
 # API Curl Commands
 
+```bash
+docker-compose up
+```
+
 ### Create Shopping Cart
 
 ```bash

@@ -39,7 +39,7 @@ func NewShoppingCart(cartID string) *ShoppingCart {
 
 func (cart *ShoppingCart) AddItem(productID string, price float64, quantity int) error {
 	if len(cart.items)+1 > CART_CAPACITY {
-		return CartMaxCapacityReachedError
+		return CartMaxCapacityReachedError // @TODO
 	}
 
 	if quantity <= 0 {
