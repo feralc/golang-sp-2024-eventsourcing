@@ -22,6 +22,14 @@ func NewInMemoryProductRepository() *InMemoryProductRepository {
 				ProductID: "456",
 				Price:     22,
 			},
+			"789": &entity.Product{
+				ProductID: "789",
+				Price:     105,
+			},
+			"999": &entity.Product{
+				ProductID: "999",
+				Price:     230,
+			},
 		},
 	}
 }
