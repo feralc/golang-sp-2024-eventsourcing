@@ -1,5 +1,7 @@
 # Event sourcing with DDD Aggregates and CQRS
 
+Apresentação: https://docs.google.com/presentation/d/1zG5eCKyTa0ODC_EsadnUielbQITtZ9KcUcc1gGLP7Vc/edit?usp=sharing
+
 ```bash
 docker-compose up
 ```
