@@ -4,8 +4,10 @@ import "github.com/feralc/golang-sp-2024-eventsourcing/domain/entity"
 
 type ShoppingCartItemViewModel struct {
 	ProductID string  `json:"product_id"`
+	Name      string  `json:"name"`
 	Price     float64 `json:"price"`
 	Quantity  int     `json:"quantity"`
+	Total     float64 `json:"total"`
 }
 
 type ShoppingCartViewModel struct {
@@ -20,8 +22,10 @@ func NewShoppingCartViewModel(cart *entity.ShoppingCart) ShoppingCartViewModel {
 	for i, item := range cart.Items() {
 		items[i] = ShoppingCartItemViewModel{
 			ProductID: item.ProductID,
+			Name:      item.Name,
 			Price:     item.Price,
 			Quantity:  item.Quantity,
+			Total:     item.Total(),
 		}
 	}
 

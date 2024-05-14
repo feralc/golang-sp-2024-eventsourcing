@@ -64,9 +64,10 @@ func HandleShoppingCartCreated(tx *sql.Tx, e event.ShoppingCartCreated) error {
 }
 
 func HandleShoppingCartItemAdded(tx *sql.Tx, e event.ShoppingCartItemAdded) error {
-	_, err := tx.Exec("INSERT INTO shopping_cart_item (cart_id, product_id, quantity, price, created_at) VALUES (?,?,?,?,?);",
+	_, err := tx.Exec("INSERT INTO shopping_cart_item (cart_id, product_id, name, quantity, price, created_at) VALUES (?,?,?,?,?);",
 		e.AggregateID(),
 		e.ProductID,
+		e.Name,
 		e.Quantity,
 		e.Price,
 		e.Timestamp(),
@@ -123,7 +124,7 @@ func HandleShoppingCartCheckedOut(tx *sql.Tx, e event.ShoppingCartCheckedOut) er
 func calculateTotal(tx *sql.Tx, cartID string) (float64, error) {
 	var total float64
 
-	row := tx.QueryRow("SELECT SUM(quantity * price) FROM shopping_cart_item WHERE cart_id = ?;", cartID)
+	row := tx.QueryRow("SELECT COALESCE(SUM(quantity * price), 0) FROM shopping_cart_item WHERE cart_id = ?;", cartID)
 	err := row.Scan(&total)
 	if err != nil {
 		return 0, err

@@ -37,9 +37,9 @@ func NewShoppingCart(cartID string) *ShoppingCart {
 	return cart
 }
 
-func (cart *ShoppingCart) AddItem(productID string, price float64, quantity int) error {
+func (cart *ShoppingCart) AddItem(productID string, name string, price float64, quantity int) error {
 	if len(cart.items)+1 > CART_CAPACITY {
-		return CartMaxCapacityReachedError // @TODO
+		return CartMaxCapacityReachedError
 	}
 
 	if quantity <= 0 {
@@ -48,6 +48,7 @@ func (cart *ShoppingCart) AddItem(productID string, price float64, quantity int)
 
 	esourcing.AppendEvent(cart, event.ShoppingCartItemAdded{
 		ProductID: productID,
+		Name:      name,
 		Price:     price,
 		Quantity:  quantity,
 	})
@@ -119,6 +120,7 @@ func (cart *ShoppingCart) ApplyEvent(e esourcing.Event) {
 		} else {
 			item := ShoppingCartItem{
 				ProductID: evt.ProductID,
+				Name:      evt.Name,
 				Price:     evt.Price,
 				Quantity:  evt.Quantity,
 			}

@@ -91,6 +91,7 @@ func GetAllShoppingCartsHandler(db *sql.DB) echo.HandlerFunc {
 				c.total,
 				c.created_at,
 				i.product_id,
+				i.name,
 				i.quantity,
 				i.price
 			FROM
@@ -115,8 +116,9 @@ func GetAllShoppingCartsHandler(db *sql.DB) echo.HandlerFunc {
 			var quantity sql.NullInt32
 			var createdAtCart string
 			var productID sql.NullString
+			var productName sql.NullString
 
-			if err := rows.Scan(&cartID, &total, &createdAtCart, &productID, &quantity, &price); err != nil {
+			if err := rows.Scan(&cartID, &total, &createdAtCart, &productID, &productName, &quantity, &price); err != nil {
 				return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 					"error": fmt.Sprintf("Failed to scan rows %s", err),
 				})
@@ -136,8 +138,10 @@ func GetAllShoppingCartsHandler(db *sql.DB) echo.HandlerFunc {
 			if productID.Valid {
 				cart.Items = append(cart.Items, ShoppingCartItemViewModel{
 					ProductID: productID.String,
+					Name:      productName.String,
 					Price:     price.Float64,
 					Quantity:  int(quantity.Int32),
+					Total:     price.Float64 * float64(quantity.Int32),
 				})
 				carts[cartID] = cart
 			}
@@ -149,5 +153,18 @@ func GetAllShoppingCartsHandler(db *sql.DB) echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, response)
+	}
+}
+
+func GetAllProductsHandler(productRepo repository.ProductRepository) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		products, err := productRepo.All(c.Request().Context())
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"error": "Failed to fetch products",
+			})
+		}
+
+		return c.JSON(http.StatusOK, products)
 	}
 }

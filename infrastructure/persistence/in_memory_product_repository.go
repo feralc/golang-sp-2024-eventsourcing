@@ -8,36 +8,49 @@ import (
 )
 
 type InMemoryProductRepository struct {
-	products map[string]*entity.Product
+	products []*entity.Product
 }
 
 func NewInMemoryProductRepository() *InMemoryProductRepository {
-	return &InMemoryProductRepository{
-		products: map[string]*entity.Product{
-			"123": &entity.Product{
-				ProductID: "123",
-				Price:     50.5,
-			},
-			"456": &entity.Product{
-				ProductID: "456",
-				Price:     22,
-			},
-			"789": &entity.Product{
-				ProductID: "789",
-				Price:     105,
-			},
-			"999": &entity.Product{
-				ProductID: "999",
-				Price:     230,
-			},
+	products := []*entity.Product{
+		{
+			Name:      "Amazing product",
+			ProductID: "123",
+			Price:     50.5,
+		},
+		{
+			Name:      "Another amazing product",
+			ProductID: "456",
+			Price:     22,
+		},
+		{
+			Name:      "Awesome product",
+			ProductID: "789",
+			Price:     105,
+		},
+		{
+			Name:      "Just another product",
+			ProductID: "999",
+			Price:     230,
 		},
 	}
+
+	return &InMemoryProductRepository{products: products}
 }
 
 func (repo *InMemoryProductRepository) FindByID(ctx context.Context, productID string) (*entity.Product, error) {
-	product, ok := repo.products[productID]
-	if !ok {
-		return nil, errors.New("product not found")
+	for _, product := range repo.products {
+		if product.ProductID == productID {
+			return product, nil
+		}
 	}
-	return product, nil
+	return nil, errors.New("product not found")
+}
+
+func (repo *InMemoryProductRepository) All(ctx context.Context) ([]entity.Product, error) {
+	products := make([]entity.Product, len(repo.products))
+	for i, p := range repo.products {
+		products[i] = *p
+	}
+	return products, nil
 }

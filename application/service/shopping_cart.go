@@ -40,7 +40,7 @@ func (s *ShoppingCartService) AddItem(ctx context.Context, cartID string, produc
 		return err
 	}
 
-	if err := cart.AddItem(product.ProductID, product.Price, quantity); err != nil {
+	if err := cart.AddItem(product.ProductID, product.Name, product.Price, quantity); err != nil {
 		return err
 	}
 

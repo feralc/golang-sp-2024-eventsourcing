@@ -16,6 +16,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -81,12 +82,19 @@ func main() {
 	case "start:server":
 		e := echo.New()
 
+		e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"*"},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		}))
+
 		e.POST("/shopping-cart", api.CreateShoppingCartHandler(shoppingCartService))
 		e.POST("/shopping-cart/:cartID/item", api.AddItemHandler(shoppingCartService))
 		e.DELETE("/shopping-cart/:cartID/item/:productID", api.RemoveItemHandler(shoppingCartService))
 		e.POST("/shopping-cart/:cartID/checkout", api.CheckoutHandler(shoppingCartService))
 		e.GET("/shopping-cart/:cartID", api.GetShoppingCartHandler(cartRepository))
 		e.GET("/shopping-carts", api.GetAllShoppingCartsHandler(db))
+
+		e.GET("/products", api.GetAllProductsHandler(productRepository))
 
 		e.Logger.Fatal(e.Start(":8080"))
 
@@ -114,6 +122,7 @@ func setupDatabase(db *sql.DB) error {
 		`CREATE TABLE shopping_cart_item (
 			cart_id VARCHAR(255) NOT NULL,
 			product_id VARCHAR(255) NOT NULL,
+			name VARCHAR(255) NOT NULL,
 			quantity INT NOT NULL,
 			price DECIMAL(10,2) NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -8,4 +8,5 @@ import (
 
 type ProductRepository interface {
 	FindByID(ctx context.Context, productID string) (*entity.Product, error)
+	All(ctx context.Context) ([]entity.Product, error)
 }
