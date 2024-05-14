@@ -64,7 +64,14 @@ func HandleShoppingCartCreated(tx *sql.Tx, e event.ShoppingCartCreated) error {
 }
 
 func HandleShoppingCartItemAdded(tx *sql.Tx, e event.ShoppingCartItemAdded) error {
-	_, err := tx.Exec("INSERT INTO shopping_cart_item (cart_id, product_id, name, quantity, price, created_at) VALUES (?,?,?,?,?);",
+	_, err := tx.Exec(`
+		INSERT INTO shopping_cart_item (cart_id, product_id, name, quantity, price, created_at) 
+		VALUES (?, ?, ?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE
+			quantity = quantity + VALUES(quantity),
+			price = VALUES(price),
+			created_at = VALUES(created_at);
+	`,
 		e.AggregateID(),
 		e.ProductID,
 		e.Name,
@@ -73,17 +80,11 @@ func HandleShoppingCartItemAdded(tx *sql.Tx, e event.ShoppingCartItemAdded) erro
 		e.Timestamp(),
 	)
 
-	total, err := calculateTotal(tx, e.AggregateID())
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.Exec("UPDATE shopping_cart SET total = ? WHERE cart_id = ?;",
-		total,
-		e.AggregateID(),
-	)
-
-	return err
+	return updateTotal(tx, e.AggregateID())
 }
 
 func HandleShoppingCartItemRemoved(tx *sql.Tx, e event.ShoppingCartItemRemoved) error {
@@ -92,17 +93,11 @@ func HandleShoppingCartItemRemoved(tx *sql.Tx, e event.ShoppingCartItemRemoved) 
 		e.ProductID,
 	)
 
-	total, err := calculateTotal(tx, e.AggregateID())
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.Exec("UPDATE shopping_cart SET total = ? WHERE cart_id = ?;",
-		total,
-		e.AggregateID(),
-	)
-
-	return err
+	return updateTotal(tx, e.AggregateID())
 }
 
 func HandleShoppingCartCheckedOut(tx *sql.Tx, e event.ShoppingCartCheckedOut) error {
@@ -121,14 +116,19 @@ func HandleShoppingCartCheckedOut(tx *sql.Tx, e event.ShoppingCartCheckedOut) er
 	return err
 }
 
-func calculateTotal(tx *sql.Tx, cartID string) (float64, error) {
+func updateTotal(tx *sql.Tx, cartID string) error {
 	var total float64
 
 	row := tx.QueryRow("SELECT COALESCE(SUM(quantity * price), 0) FROM shopping_cart_item WHERE cart_id = ?;", cartID)
 	err := row.Scan(&total)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return total, nil
+	_, err = tx.Exec("UPDATE shopping_cart SET total = ? WHERE cart_id = ?;",
+		total,
+		cartID,
+	)
+
+	return err
 }
